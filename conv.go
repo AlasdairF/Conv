@@ -78,6 +78,10 @@ func format(u int, padding int) []byte {
 	a[i] = digits01[uintptr(u)]
 	
 	if padding == 0 {
+		if neg {
+			i--
+			a[i] = '-'
+		}
 		return a[i:]
 	}
 	
@@ -90,7 +94,6 @@ func format(u int, padding int) []byte {
 		i--
 		a[i] = '0'
 	}
-	
 	if neg {
 		i--
 		a[i] = '-'
