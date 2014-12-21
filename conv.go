@@ -5,33 +5,33 @@ const (
  digits10 = "0000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999"
 )
 
-type mem struct {
+type Buf struct {
  buf []byte
 }
 
-func NewConverter() *mem {
-	obj := new(mem)
+func NewConverter() *Buf {
+	obj := new(Buf)
 	obj.buf = make([]byte, 20)
 	return obj
 }
 
-func (obj *mem) String(u int) string {
+func (obj *Buf) String(u int) string {
 	return string(obj.format(u, 0))
 }
 
-func (obj *mem) StringPad(u int, p int) string {
+func (obj *Buf) StringPad(u int, p int) string {
 	return string(obj.format(u, p))
 }
 
-func (obj *mem) Bytes(u int) []byte {
+func (obj *Buf) Bytes(u int) []byte {
 	return obj.format(u, 0)
 }
 
-func (obj *mem) BytesPad(u int, p int) []byte {
+func (obj *Buf) BytesPad(u int, p int) []byte {
 	return obj.format(u, p)
 }
 
-func (obj *mem) format(u int, padding int) []byte {
+func (obj *Buf) format(u int, padding int) []byte {
 
 	var neg bool
 	if u < 0 {
