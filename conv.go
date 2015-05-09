@@ -182,3 +182,49 @@ func Uint(a []byte) (result uint) {
 	}
 	return result
 }
+
+func Ints(a []byte) []int {
+	pages := make([]int, 0, 3)
+	var in bool
+	var last int
+	for i, b := range a {
+		if b >= '0' && b <= '9' {
+			if !in {
+				in = true
+				last = i
+			}
+		} else {
+			if in {
+				pages = append(pages, Int(a[last:i]))
+				in = false
+			}
+		}
+	}
+	if in {
+		pages = append(pages, Int(a[last:]))
+	}
+	return pages
+}
+
+func Uints(a []byte) []uint {
+	pages := make([]uint, 0, 3)
+	var in bool
+	var last int
+	for i, b := range a {
+		if b >= '0' && b <= '9' {
+			if !in {
+				in = true
+				last = i
+			}
+		} else {
+			if in {
+				pages = append(pages, Uint(a[last:i]))
+				in = false
+			}
+		}
+	}
+	if in {
+		pages = append(pages, Uint(a[last:]))
+	}
+	return pages
+}
