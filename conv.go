@@ -158,6 +158,9 @@ func format(u int, padding int) []byte {
 }
 
 func Int(a []byte) (result int) {
+	if len(a) == 0 {
+		return 0
+	}
 	var neg bool
 	if a[0] == '-' {
 		neg = true
@@ -175,6 +178,9 @@ func Int(a []byte) (result int) {
 }
 
 func Uint(a []byte) (result uint) {
+	if len(a) == 0 {
+		return 0
+	}
 	var m uint = 1
 	for i:=len(a)-1; i>=0; i-- {
 		result += uint(a[i]-48) * m
@@ -188,7 +194,7 @@ func Ints(a []byte) []int {
 	var in bool
 	var last int
 	for i, b := range a {
-		if b >= '0' && b <= '9' {
+		if (b >= '0' && b <= '9') || b == '-' {
 			if !in {
 				in = true
 				last = i
