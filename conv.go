@@ -6,12 +6,11 @@ const (
 )
 
 type Buf struct {
- buf []byte
+ buf [20]byte
 }
 
 func NewConverter() *Buf {
 	obj := new(Buf)
-	obj.buf = make([]byte, 20)
 	return obj
 }
 
@@ -41,7 +40,7 @@ func (obj *Buf) format(u int, padding int) []byte {
 
 	var q int
 	var j uintptr
-	a := obj.buf
+	a := obj.buf[0:20]
 	i := 20
 
 	for u >= 100 {
