@@ -36,6 +36,10 @@ func (obj *Buf) format(u int, padding int) []byte {
 	if u < 0 {
 		neg = true
 		u = -u
+	} else {
+		if u < 10 && padding == 0 {
+			return []byte{byte(u) + 48}
+		}
 	}
 
 	var q int
@@ -107,6 +111,10 @@ func format(u int, padding int) []byte {
 	if u < 0 {
 		neg = true
 		u = -u
+	} else {
+		if u < 10 && padding == 0 {
+			return []byte{byte(u) + 48}
+		}
 	}
 
 	var q int
