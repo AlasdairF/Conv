@@ -30,6 +30,88 @@ func (obj *Buf) BytesPad(u int, p int) []byte {
 	return obj.format(u, p)
 }
 
+func (obj *Buf) StringFloat(f float64, prec int) string {
+	return string(obj.BytesFloat(f, prec))
+}
+
+func (obj *Buf) BytesFloat(f float64, prec int) []byte {
+	if prec == 0 {
+	  return obj.format(int(f), 0)
+	}
+	u := int(f)
+	save := u
+	var neg bool
+	if u < 0 {
+		neg = true
+		u = -u
+	}
+
+	var q int
+	var j uintptr
+	a := obj.buf[0:20]
+	i := 19 - prec
+
+	for u >= 100 {
+		i -= 2
+		q = u / 100
+		j = uintptr(u - q*100)
+		a[i+1] = digits01[j]
+		a[i] = digits10[j]
+		u = q
+	}
+	if u >= 10 {
+		i--
+		q = u / 10
+		a[i] = digits01[uintptr(u-q*10)]
+		u = q
+	}
+	i--
+	a[i] = digits01[uintptr(u)]
+	
+
+	if neg {
+		i--
+		a[i] = '-'
+	}
+	
+	a[19 - prec] = '.'
+	switch prec {
+		case 1: u = int(f * 10) - (save * 10)
+		case 2: u = int(f * 100) - (save * 100)
+		case 3: u = int(f * 1000) - (save * 1000)
+		case 4: u = int(f * 10000) - (save * 10000)
+		case 5: u = int(f * 100000) - (save * 100000)
+		case 6: u = int(f * 1000000) - (save * 1000000)
+		case 7: u = int(f * 10000000) - (save * 10000000)
+		case 8: u = int(f * 100000000) - (save * 100000000)
+		case 9: u = int(f * 1000000000) - (save * 1000000000)
+	}
+	if neg {
+		u = -u
+	}
+	save = i
+	
+	i = 20
+	for u >= 100 {
+		i -= 2
+		q = u / 100
+		j = uintptr(u - q*100)
+		a[i+1] = digits01[j]
+		a[i] = digits10[j]
+		u = q
+	}
+	if u >= 10 {
+		i--
+		q = u / 10
+		a[i] = digits01[uintptr(u-q*10)]
+		u = q
+	}
+	i--
+	a[i] = digits01[uintptr(u)]
+	
+	return a[save:]
+}
+
 func (obj *Buf) format(u int, padding int) []byte {
 
 	var neg bool
@@ -103,6 +185,88 @@ func Bytes(u int) []byte {
 
 func BytesPad(u int, p int) []byte {
 	return format(u, p)
+}
+
+func StringFloat(f float64, prec int) string {
+	return string(BytesFloat(f, prec))
+}
+
+func BytesFloat(f float64, prec int) []byte {
+	if prec == 0 {
+	  return format(int(f), 0)
+	}
+	u := int(f)
+	save := u
+	var neg bool
+	if u < 0 {
+		neg = true
+		u = -u
+	}
+
+	var q int
+	var j uintptr
+	var a [20]byte
+	i := 19 - prec
+
+	for u >= 100 {
+		i -= 2
+		q = u / 100
+		j = uintptr(u - q*100)
+		a[i+1] = digits01[j]
+		a[i] = digits10[j]
+		u = q
+	}
+	if u >= 10 {
+		i--
+		q = u / 10
+		a[i] = digits01[uintptr(u-q*10)]
+		u = q
+	}
+	i--
+	a[i] = digits01[uintptr(u)]
+	
+
+	if neg {
+		i--
+		a[i] = '-'
+	}
+	
+	a[19 - prec] = '.'
+	switch prec {
+		case 1: u = int(f * 10) - (save * 10)
+		case 2: u = int(f * 100) - (save * 100)
+		case 3: u = int(f * 1000) - (save * 1000)
+		case 4: u = int(f * 10000) - (save * 10000)
+		case 5: u = int(f * 100000) - (save * 100000)
+		case 6: u = int(f * 1000000) - (save * 1000000)
+		case 7: u = int(f * 10000000) - (save * 10000000)
+		case 8: u = int(f * 100000000) - (save * 100000000)
+		case 9: u = int(f * 1000000000) - (save * 1000000000)
+	}
+	if neg {
+		u = -u
+	}
+	save = i
+	
+	i = 20
+	for u >= 100 {
+		i -= 2
+		q = u / 100
+		j = uintptr(u - q*100)
+		a[i+1] = digits01[j]
+		a[i] = digits10[j]
+		u = q
+	}
+	if u >= 10 {
+		i--
+		q = u / 10
+		a[i] = digits01[uintptr(u-q*10)]
+		u = q
+	}
+	i--
+	a[i] = digits01[uintptr(u)]
+	
+	return a[save:]
 }
 
 func format(u int, padding int) []byte {
