@@ -30,11 +30,11 @@ func (obj *Buf) BytesPad(u int, p int) []byte {
 	return obj.format(u, p)
 }
 
-func (obj *Buf) StringFloat(f float64, prec int) string {
-	return string(obj.BytesFloat(f, prec))
+func (obj *Buf) FloatString(f float64, prec int) string {
+	return string(obj.FloatBytes(f, prec))
 }
 
-func (obj *Buf) BytesFloat(f float64, prec int) []byte {
+func (obj *Buf) FloatBytes(f float64, prec int) []byte {
 	if prec == 0 {
 	  return obj.format(int(f), 0)
 	}
@@ -187,11 +187,11 @@ func BytesPad(u int, p int) []byte {
 	return format(u, p)
 }
 
-func StringFloat(f float64, prec int) string {
-	return string(BytesFloat(f, prec))
+func FloatString(f float64, prec int) string {
+	return string(FloatBytes(f, prec))
 }
 
-func BytesFloat(f float64, prec int) []byte {
+func FloatBytes(f float64, prec int) []byte {
 	if prec == 0 {
 	  return format(int(f), 0)
 	}
