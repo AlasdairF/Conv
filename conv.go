@@ -16,12 +16,30 @@ var pool = sync.Pool{
     },
 }
 
+func DecimalMark(num []byte, mark byte) []byte {
+	l := len(num)
+	l2 := l + ((l - 1) / 3)
+	newar := make([]byte, l2)
+	var i int
+	l2--
+	for l--; l>=0; l-- {
+		if i++; i == 4 {
+			newar[l2] = mark
+			l2--
+			i = 1
+		}
+		newar[l2] = num[l]
+		l2--
+	}
+	return newar
+}
+
 func String(u int) string {
-	return string(format(u, 0))
+	return formatString(u, 0)
 }
 
 func StringPad(u int, p int) string {
-	return string(format(u, p))
+	return formatString(u, p)
 }
 
 func Bytes(u int) []byte {
@@ -177,6 +195,75 @@ func format(u int, padding int) []byte {
 	cpy := make([]byte, 20 - i)
 	copy(cpy, a[i:])
 	return cpy
+}
+
+func formatString(u int, padding int) string {
+	var neg bool
+	if u < 0 {
+		neg = true
+		u = -u
+	} else {
+		if u < 10 && padding == 0 {
+			switch u {
+				case 0: return `0`
+				case 1: return `1`
+				case 2: return `2`
+				case 3: return `3`
+				case 4: return `4`
+				case 5: return `5`
+				case 6: return `6`
+				case 7: return `7`
+				case 8: return `8`
+				case 9: return `9`
+			}
+		}
+	}
+
+	var q int
+	var j uintptr
+	a := pool.Get().([]byte)
+	defer pool.Put(a)
+	i := 20
+
+	for u >= 100 {
+		i -= 2
+		q = u / 100
+		j = uintptr(u - q*100)
+		a[i+1] = digits01[j]
+		a[i] = digits10[j]
+		u = q
+	}
+	if u >= 10 {
+		i--
+		q = u / 10
+		a[i] = digits01[uintptr(u-q*10)]
+		u = q
+	}
+	i--
+	a[i] = digits01[uintptr(u)]
+	
+	if padding == 0 {
+		if neg {
+			i--
+			a[i] = '-'
+		}
+		return string(a[i:])
+	}
+	
+	if neg {
+		padding = 21 - padding
+	} else {
+		padding = 20 - padding
+	}
+	for i > padding {
+		i--
+		a[i] = '0'
+	}
+	if neg {
+		i--
+		a[i] = '-'
+	}
+	return string(a[i:])
 }
 
 func Write(w io.Writer, u int, padding int) (int, error) {
