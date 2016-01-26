@@ -10,13 +10,14 @@ const (
  digits10 = "0000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999"
 )
 
+var numeric []bool = []bool{false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false}
 var pool = sync.Pool{
     New: func() interface{} {
         return make([]byte, 20)
     },
 }
 
-func DecimalMark(num []byte, mark byte) []byte {
+func FormatThousands(num []byte, mark byte) []byte {
 	l := len(num)
 	l2 := l + ((l - 1) / 3)
 	newar := make([]byte, l2)
@@ -32,6 +33,27 @@ func DecimalMark(num []byte, mark byte) []byte {
 		l2--
 	}
 	return newar
+}
+
+func IsNumeric(p []byte) bool {
+	for _, b := range p {
+		if !numeric[b] {
+			return false
+		}
+	}
+	return true
+}
+
+func IsNumericString(p string) bool {
+	for _, b := range p {
+		if b > 255 || b < 0 {
+			return false
+		}
+		if !numeric[b] {
+			return false
+		}
+	}
+	return true
 }
 
 func String(u int) string {
