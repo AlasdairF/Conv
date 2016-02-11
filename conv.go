@@ -1,7 +1,6 @@
 package conv
 
 import (
-	"sync"
 	"io"
 )
 
@@ -11,11 +10,6 @@ const (
 )
 
 var numeric []bool = []bool{false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false}
-var pool = sync.Pool{
-    New: func() interface{} {
-        return make([]byte, 20)
-    },
-}
 
 func FormatThousands(num []byte, mark byte) []byte {
 	l := len(num)
@@ -90,8 +84,7 @@ func FloatBytes(f float64, prec int) []byte {
 
 	var q int
 	var j uintptr
-	a := pool.Get().([]byte)
-	defer pool.Put(a)
+	var a [20]byte
 	i := 19 - prec
 
 	for u >= 100 {
@@ -150,10 +143,7 @@ func FloatBytes(f float64, prec int) []byte {
 	}
 	i--
 	a[i] = digits01[uintptr(u)]
-	
-	cpy := make([]byte, 20 - save)
-	copy(cpy, a[save:])
-	return cpy
+	return a[save:]
 }
 
 func format(u int, padding int) []byte {
@@ -169,8 +159,7 @@ func format(u int, padding int) []byte {
 
 	var q int
 	var j uintptr
-	a := pool.Get().([]byte)
-	defer pool.Put(a)
+	var a [20]byte
 	i := 20
 
 	for u >= 100 {
@@ -195,9 +184,7 @@ func format(u int, padding int) []byte {
 			i--
 			a[i] = '-'
 		}
-		cpy := make([]byte, 20 - i)
-		copy(cpy, a[i:])
-		return cpy
+		return a[i:]
 	}
 	
 	if neg {
@@ -214,9 +201,7 @@ func format(u int, padding int) []byte {
 		a[i] = '-'
 	}
 	
-	cpy := make([]byte, 20 - i)
-	copy(cpy, a[i:])
-	return cpy
+	return a[i:]
 }
 
 func formatString(u int, padding int) string {
@@ -243,8 +228,7 @@ func formatString(u int, padding int) string {
 
 	var q int
 	var j uintptr
-	a := pool.Get().([]byte)
-	defer pool.Put(a)
+	var a [20]byte
 	i := 20
 
 	for u >= 100 {
@@ -289,23 +273,22 @@ func formatString(u int, padding int) string {
 }
 
 func Write(w io.Writer, u int, padding int) (int, error) {
-	a := pool.Get().([]byte)
-	defer pool.Put(a)
+	
 	var neg bool
 	if u < 0 {
 		neg = true
 		u = -u
 	} else {
 		if u < 10 && padding == 0 {
-			a[0] = byte(u) + 48
-			return w.Write(a[0:1])
+			return w.Write([]byte{byte(u) + 48})
 		}
 	}
 
 	var q int
 	var j uintptr
+	var a [20]byte
 	i := 20
-
+	
 	for u >= 100 {
 		i -= 2
 		q = u / 100
@@ -362,8 +345,7 @@ func WriteFloat(w io.Writer, f float64, prec int) (int, error) {
 
 	var q int
 	var j uintptr
-	a := pool.Get().([]byte)
-	defer pool.Put(a)
+	var a [20]byte
 	i := 19 - prec
 
 	for u >= 100 {
@@ -460,22 +442,39 @@ func Uint(a []byte) (result uint) {
 
 func Ints(a []byte) []int {
 	pages := make([]int, 0, 3)
-	var in bool
+	var in, hyphen bool
 	var last int
 	for i, b := range a {
-		if (b >= '0' && b <= '9') || b == '-' {
+		if (b >= '0' && b <= '9') {
 			if !in {
 				in = true
 				last = i
 			}
+			hyphen = false
 		} else {
-			if in {
-				pages = append(pages, Int(a[last:i]))
-				in = false
+			if b == '-' {
+				if in {
+					if !hyphen {
+						pages = append(pages, Int(a[last:i]))
+					}
+					last = i
+					hyphen = true
+				} else {
+					in = true
+					last = i
+					hyphen = true
+				}
+			} else {
+				if in {
+					if !hyphen {
+						pages = append(pages, Int(a[last:i]))
+					}
+					in = false
+				}
 			}
 		}
 	}
-	if in {
+	if in && !hyphen {
 		pages = append(pages, Int(a[last:]))
 	}
 	return pages
@@ -483,22 +482,39 @@ func Ints(a []byte) []int {
 
 func Uints(a []byte) []uint {
 	pages := make([]uint, 0, 3)
-	var in bool
+	var in, hyphen bool
 	var last int
 	for i, b := range a {
-		if b >= '0' && b <= '9' {
+		if (b >= '0' && b <= '9') {
 			if !in {
 				in = true
 				last = i
 			}
+			hyphen = false
 		} else {
-			if in {
-				pages = append(pages, Uint(a[last:i]))
-				in = false
+			if b == '-' {
+				if in {
+					if !hyphen {
+						pages = append(pages, Uint(a[last:i]))
+					}
+					last = i
+					hyphen = true
+				} else {
+					in = true
+					last = i
+					hyphen = true
+				}
+			} else {
+				if in {
+					if !hyphen {
+						pages = append(pages, Uint(a[last:i]))
+					}
+					in = false
+				}
 			}
 		}
 	}
-	if in {
+	if in && !hyphen {
 		pages = append(pages, Uint(a[last:]))
 	}
 	return pages
