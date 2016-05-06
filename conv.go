@@ -29,6 +29,7 @@ func FormatThousands(num []byte, mark byte) []byte {
 	return newar
 }
 
+// IsNumeric returns whether p represents a number.
 func IsNumeric(p []byte) bool {
 	for _, b := range p {
 		if !numeric[b] {
@@ -38,6 +39,7 @@ func IsNumeric(p []byte) bool {
 	return true
 }
 
+// IsNumericString returns whether p is ASCII and represents a number.
 func IsNumericString(p string) bool {
 	for _, b := range p {
 		if b > 255 || b < 0 {
