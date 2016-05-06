@@ -446,6 +446,10 @@ func WriteFloat(w io.Writer, f float64, prec int) (int, error) {
 }
 
 func Int(a []byte) (result int) {
+	return int(Int64(a))
+}
+
+func Int64(a []byte) (result int64) {
 	if len(a) == 0 {
 		return 0
 	}
@@ -454,9 +458,9 @@ func Int(a []byte) (result int) {
 		neg = true
 		a[0] = 48
 	}
-	var m int = 1
+	var m int64 = 1
 	for i := len(a) - 1; i >= 0; i-- {
-		result += int(a[i]-48) * m
+		result += int64(a[i]-48) * m
 		m *= 10
 	}
 	if neg {
@@ -466,12 +470,16 @@ func Int(a []byte) (result int) {
 }
 
 func Uint(a []byte) (result uint) {
+	return uint(Uint64(a))
+}
+
+func Uint64(a []byte) (result uint64) {
 	if len(a) == 0 {
 		return 0
 	}
-	var m uint = 1
+	var m uint64 = 1
 	for i := len(a) - 1; i >= 0; i-- {
-		result += uint(a[i]-48) * m
+		result += uint64(a[i]-48) * m
 		m *= 10
 	}
 	return result
