@@ -5,8 +5,8 @@ import (
 )
 
 const (
- digits01 = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
- digits10 = "0000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999"
+	digits01 = "0123456789012345678901234567890123456789012345678901234567890123456789012345678901234567890123456789"
+	digits10 = "0000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999"
 )
 
 var numeric []bool = []bool{false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false}
@@ -17,7 +17,7 @@ func FormatThousands(num []byte, mark byte) []byte {
 	newar := make([]byte, l2)
 	var i int
 	l2--
-	for l--; l>=0; l-- {
+	for l--; l >= 0; l-- {
 		if i++; i == 4 {
 			newar[l2] = mark
 			l2--
@@ -50,29 +50,38 @@ func IsNumericString(p string) bool {
 	return true
 }
 
+// String converts an integer to a string.
 func String(u int) string {
+	return formatString(int64(u), 0)
+}
+
+// String64 converts an integer to a string.
+func String64(u int64) string {
 	return formatString(u, 0)
 }
 
 func StringPad(u int, p int) string {
-	return formatString(u, p)
+	return formatString(int64(u), p)
 }
 
+// Bytes converts an int to a byte-string.
 func Bytes(u int) []byte {
-	return format(u, 0)
+	return format(int64(u), 0)
 }
 
 func BytesPad(u int, p int) []byte {
-	return format(u, p)
+	return format(int64(u), p)
 }
 
+// FloatString converts a float at the desired precision into a string.
 func FloatString(f float64, prec int) string {
 	return string(FloatBytes(f, prec))
 }
 
+// FloatBytes converts a float at the desired precision into a binary string.
 func FloatBytes(f float64, prec int) []byte {
 	if prec == 0 {
-	  return format(int(f), 0)
+		return format(int64(f), 0)
 	}
 	u := int(f)
 	save := u
@@ -103,29 +112,38 @@ func FloatBytes(f float64, prec int) []byte {
 	}
 	i--
 	a[i] = digits01[uintptr(u)]
-	
+
 	if neg {
 		i--
 		a[i] = '-'
 	}
-	
-	a[19 - prec] = '.'
+
+	a[19-prec] = '.'
 	switch prec {
-		case 1: u = int(f * 10) - (save * 10)
-		case 2: u = int(f * 100) - (save * 100)
-		case 3: u = int(f * 1000) - (save * 1000)
-		case 4: u = int(f * 10000) - (save * 10000)
-		case 5: u = int(f * 100000) - (save * 100000)
-		case 6: u = int(f * 1000000) - (save * 1000000)
-		case 7: u = int(f * 10000000) - (save * 10000000)
-		case 8: u = int(f * 100000000) - (save * 100000000)
-		case 9: u = int(f * 1000000000) - (save * 1000000000)
+	case 1:
+		u = int(f*10) - (save * 10)
+	case 2:
+		u = int(f*100) - (save * 100)
+	case 3:
+		u = int(f*1000) - (save * 1000)
+	case 4:
+		u = int(f*10000) - (save * 10000)
+	case 5:
+		u = int(f*100000) - (save * 100000)
+	case 6:
+		u = int(f*1000000) - (save * 1000000)
+	case 7:
+		u = int(f*10000000) - (save * 10000000)
+	case 8:
+		u = int(f*100000000) - (save * 100000000)
+	case 9:
+		u = int(f*1000000000) - (save * 1000000000)
 	}
 	if neg {
 		u = -u
 	}
 	save = i
-	
+
 	i = 20
 	for u >= 100 {
 		i -= 2
@@ -146,7 +164,7 @@ func FloatBytes(f float64, prec int) []byte {
 	return a[save:]
 }
 
-func format(u int, padding int) []byte {
+func format(u int64, padding int) []byte {
 	var neg bool
 	if u < 0 {
 		neg = true
@@ -157,7 +175,7 @@ func format(u int, padding int) []byte {
 		}
 	}
 
-	var q int
+	var q int64
 	var j uintptr
 	var a [20]byte
 	i := 20
@@ -178,7 +196,7 @@ func format(u int, padding int) []byte {
 	}
 	i--
 	a[i] = digits01[uintptr(u)]
-	
+
 	if padding == 0 {
 		if neg {
 			i--
@@ -186,7 +204,7 @@ func format(u int, padding int) []byte {
 		}
 		return a[i:]
 	}
-	
+
 	if neg {
 		padding = 21 - padding
 	} else {
@@ -200,11 +218,11 @@ func format(u int, padding int) []byte {
 		i--
 		a[i] = '-'
 	}
-	
+
 	return a[i:]
 }
 
-func formatString(u int, padding int) string {
+func formatString(u int64, padding int) string {
 	var neg bool
 	if u < 0 {
 		neg = true
@@ -212,21 +230,31 @@ func formatString(u int, padding int) string {
 	} else {
 		if u < 10 && padding == 0 {
 			switch u {
-				case 0: return `0`
-				case 1: return `1`
-				case 2: return `2`
-				case 3: return `3`
-				case 4: return `4`
-				case 5: return `5`
-				case 6: return `6`
-				case 7: return `7`
-				case 8: return `8`
-				case 9: return `9`
+			case 0:
+				return `0`
+			case 1:
+				return `1`
+			case 2:
+				return `2`
+			case 3:
+				return `3`
+			case 4:
+				return `4`
+			case 5:
+				return `5`
+			case 6:
+				return `6`
+			case 7:
+				return `7`
+			case 8:
+				return `8`
+			case 9:
+				return `9`
 			}
 		}
 	}
 
-	var q int
+	var q int64
 	var j uintptr
 	var a [20]byte
 	i := 20
@@ -247,7 +275,7 @@ func formatString(u int, padding int) string {
 	}
 	i--
 	a[i] = digits01[uintptr(u)]
-	
+
 	if padding == 0 {
 		if neg {
 			i--
@@ -255,7 +283,7 @@ func formatString(u int, padding int) string {
 		}
 		return string(a[i:])
 	}
-	
+
 	if neg {
 		padding = 21 - padding
 	} else {
@@ -273,7 +301,7 @@ func formatString(u int, padding int) string {
 }
 
 func Write(w io.Writer, u int, padding int) (int, error) {
-	
+
 	var neg bool
 	if u < 0 {
 		neg = true
@@ -288,7 +316,7 @@ func Write(w io.Writer, u int, padding int) (int, error) {
 	var j uintptr
 	var a [20]byte
 	i := 20
-	
+
 	for u >= 100 {
 		i -= 2
 		q = u / 100
@@ -305,7 +333,7 @@ func Write(w io.Writer, u int, padding int) (int, error) {
 	}
 	i--
 	a[i] = digits01[uintptr(u)]
-	
+
 	if padding == 0 {
 		if neg {
 			i--
@@ -313,7 +341,7 @@ func Write(w io.Writer, u int, padding int) (int, error) {
 		}
 		return w.Write(a[i:])
 	}
-	
+
 	if neg {
 		padding = 21 - padding
 	} else {
@@ -327,13 +355,13 @@ func Write(w io.Writer, u int, padding int) (int, error) {
 		i--
 		a[i] = '-'
 	}
-	
+
 	return w.Write(a[i:])
 }
 
 func WriteFloat(w io.Writer, f float64, prec int) (int, error) {
 	if prec == 0 {
-	  return Write(w, int(f), 0)
+		return Write(w, int(f), 0)
 	}
 	u := int(f)
 	save := u
@@ -364,29 +392,38 @@ func WriteFloat(w io.Writer, f float64, prec int) (int, error) {
 	}
 	i--
 	a[i] = digits01[uintptr(u)]
-	
+
 	if neg {
 		i--
 		a[i] = '-'
 	}
-	
-	a[19 - prec] = '.'
+
+	a[19-prec] = '.'
 	switch prec {
-		case 1: u = int(f * 10) - (save * 10)
-		case 2: u = int(f * 100) - (save * 100)
-		case 3: u = int(f * 1000) - (save * 1000)
-		case 4: u = int(f * 10000) - (save * 10000)
-		case 5: u = int(f * 100000) - (save * 100000)
-		case 6: u = int(f * 1000000) - (save * 1000000)
-		case 7: u = int(f * 10000000) - (save * 10000000)
-		case 8: u = int(f * 100000000) - (save * 100000000)
-		case 9: u = int(f * 1000000000) - (save * 1000000000)
+	case 1:
+		u = int(f*10) - (save * 10)
+	case 2:
+		u = int(f*100) - (save * 100)
+	case 3:
+		u = int(f*1000) - (save * 1000)
+	case 4:
+		u = int(f*10000) - (save * 10000)
+	case 5:
+		u = int(f*100000) - (save * 100000)
+	case 6:
+		u = int(f*1000000) - (save * 1000000)
+	case 7:
+		u = int(f*10000000) - (save * 10000000)
+	case 8:
+		u = int(f*100000000) - (save * 100000000)
+	case 9:
+		u = int(f*1000000000) - (save * 1000000000)
 	}
 	if neg {
 		u = -u
 	}
 	save = i
-	
+
 	i = 20
 	for u >= 100 {
 		i -= 2
@@ -404,7 +441,7 @@ func WriteFloat(w io.Writer, f float64, prec int) (int, error) {
 	}
 	i--
 	a[i] = digits01[uintptr(u)]
-	
+
 	return w.Write(a[save:])
 }
 
@@ -418,7 +455,7 @@ func Int(a []byte) (result int) {
 		a[0] = 48
 	}
 	var m int = 1
-	for i:=len(a)-1; i>=0; i-- {
+	for i := len(a) - 1; i >= 0; i-- {
 		result += int(a[i]-48) * m
 		m *= 10
 	}
@@ -433,7 +470,7 @@ func Uint(a []byte) (result uint) {
 		return 0
 	}
 	var m uint = 1
-	for i:=len(a)-1; i>=0; i-- {
+	for i := len(a) - 1; i >= 0; i-- {
 		result += uint(a[i]-48) * m
 		m *= 10
 	}
@@ -445,7 +482,7 @@ func Ints(a []byte) []int {
 	var in, hyphen bool
 	var last int
 	for i, b := range a {
-		if (b >= '0' && b <= '9') {
+		if b >= '0' && b <= '9' {
 			if !in {
 				in = true
 				last = i
@@ -485,7 +522,7 @@ func Uints(a []byte) []uint {
 	var in, hyphen bool
 	var last int
 	for i, b := range a {
-		if (b >= '0' && b <= '9') {
+		if b >= '0' && b <= '9' {
 			if !in {
 				in = true
 				last = i
