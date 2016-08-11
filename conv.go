@@ -71,6 +71,20 @@ func FloatString(f float64, prec int) string {
 }
 
 func FloatBytes(f float64, prec int) []byte {
+
+	switch prec {
+		case 0: f += 0.5
+		case 1: f += 0.05
+		case 2: f += 0.005
+		case 3: f += 0.0005
+		case 4: f += 0.00005
+		case 5: f += 0.000005
+		case 6: f += 0.0000005
+		case 7: f += 0.00000005
+		case 8: f += 0.000000005
+		case 9: f += 0.0000000005
+	}
+
 	if prec == 0 {
 	  return format(int(f), 0)
 	}
