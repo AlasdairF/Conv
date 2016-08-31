@@ -9,7 +9,7 @@ const (
  digits10 = "0000000000111111111122222222223333333333444444444455555555556666666666777777777788888888889999999999"
 )
 
-var numeric []bool = []bool{false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false}
+var numeric [256]bool = [256]bool{false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, true, false, false, true, true, true, true, true, true, true, true, true, true, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false, false}
 
 func FormatThousands(num []byte, mark byte) []byte {
 	l := len(num)
@@ -157,7 +157,107 @@ func FloatBytes(f float64, prec int) []byte {
 	}
 	i--
 	a[i] = digits01[uintptr(u)]
+	u = 20 - prec
+	for i > u {
+		i--
+		a[i] = '0'
+	}
 	return a[save:]
+}
+
+func WriteFloat(w io.Writer, f float64, prec int) (int, error) {
+
+	switch prec {
+		case 0: f += 0.5
+		case 1: f += 0.05
+		case 2: f += 0.005
+		case 3: f += 0.0005
+		case 4: f += 0.00005
+		case 5: f += 0.000005
+		case 6: f += 0.0000005
+		case 7: f += 0.00000005
+		case 8: f += 0.000000005
+		case 9: f += 0.0000000005
+	}
+	
+	if prec == 0 {
+	  return Write(w, int(f), 0)
+	}
+	u := int(f)
+	save := u
+	var neg bool
+	if u < 0 {
+		neg = true
+		u = -u
+	}
+
+	var q int
+	var j uintptr
+	var a [20]byte
+	i := 19 - prec
+
+	for u >= 100 {
+		i -= 2
+		q = u / 100
+		j = uintptr(u - q*100)
+		a[i+1] = digits01[j]
+		a[i] = digits10[j]
+		u = q
+	}
+	if u >= 10 {
+		i--
+		q = u / 10
+		a[i] = digits01[uintptr(u-q*10)]
+		u = q
+	}
+	i--
+	a[i] = digits01[uintptr(u)]
+	
+	if neg {
+		i--
+		a[i] = '-'
+	}
+	
+	a[19 - prec] = '.'
+	switch prec {
+		case 1: u = int(f * 10) - (save * 10)
+		case 2: u = int(f * 100) - (save * 100)
+		case 3: u = int(f * 1000) - (save * 1000)
+		case 4: u = int(f * 10000) - (save * 10000)
+		case 5: u = int(f * 100000) - (save * 100000)
+		case 6: u = int(f * 1000000) - (save * 1000000)
+		case 7: u = int(f * 10000000) - (save * 10000000)
+		case 8: u = int(f * 100000000) - (save * 100000000)
+		case 9: u = int(f * 1000000000) - (save * 1000000000)
+	}
+	if neg {
+		u = -u
+	}
+	save = i
+	
+	i = 20
+	for u >= 100 {
+		i -= 2
+		q = u / 100
+		j = uintptr(u - q*100)
+		a[i+1] = digits01[j]
+		a[i] = digits10[j]
+		u = q
+	}
+	if u >= 10 {
+		i--
+		q = u / 10
+		a[i] = digits01[uintptr(u-q*10)]
+		u = q
+	}
+	i--
+	a[i] = digits01[uintptr(u)]
+	u = 20 - prec
+	for i > u {
+		i--
+		a[i] = '0'
+	}
+	return w.Write(a[save:])
 }
 
 func format(u int, padding int) []byte {
@@ -343,83 +443,6 @@ func Write(w io.Writer, u int, padding int) (int, error) {
 	}
 	
 	return w.Write(a[i:])
-}
-
-func WriteFloat(w io.Writer, f float64, prec int) (int, error) {
-	if prec == 0 {
-	  return Write(w, int(f), 0)
-	}
-	u := int(f)
-	save := u
-	var neg bool
-	if u < 0 {
-		neg = true
-		u = -u
-	}
-
-	var q int
-	var j uintptr
-	var a [20]byte
-	i := 19 - prec
-
-	for u >= 100 {
-		i -= 2
-		q = u / 100
-		j = uintptr(u - q*100)
-		a[i+1] = digits01[j]
-		a[i] = digits10[j]
-		u = q
-	}
-	if u >= 10 {
-		i--
-		q = u / 10
-		a[i] = digits01[uintptr(u-q*10)]
-		u = q
-	}
-	i--
-	a[i] = digits01[uintptr(u)]
-	
-	if neg {
-		i--
-		a[i] = '-'
-	}
-	
-	a[19 - prec] = '.'
-	switch prec {
-		case 1: u = int(f * 10) - (save * 10)
-		case 2: u = int(f * 100) - (save * 100)
-		case 3: u = int(f * 1000) - (save * 1000)
-		case 4: u = int(f * 10000) - (save * 10000)
-		case 5: u = int(f * 100000) - (save * 100000)
-		case 6: u = int(f * 1000000) - (save * 1000000)
-		case 7: u = int(f * 10000000) - (save * 10000000)
-		case 8: u = int(f * 100000000) - (save * 100000000)
-		case 9: u = int(f * 1000000000) - (save * 1000000000)
-	}
-	if neg {
-		u = -u
-	}
-	save = i
-	
-	i = 20
-	for u >= 100 {
-		i -= 2
-		q = u / 100
-		j = uintptr(u - q*100)
-		a[i+1] = digits01[j]
-		a[i] = digits10[j]
-		u = q
-	}
-	if u >= 10 {
-		i--
-		q = u / 10
-		a[i] = digits01[uintptr(u-q*10)]
-		u = q
-	}
-	i--
-	a[i] = digits01[uintptr(u)]
-	
-	return w.Write(a[save:])
 }
 
 func Int(a []byte) (result int) {
