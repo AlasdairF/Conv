@@ -72,29 +72,40 @@ func FloatString(f float64, prec int) string {
 
 func FloatBytes(f float64, prec int) []byte {
 
-	switch prec {
-		case 0: f += 0.5
-		case 1: f += 0.05
-		case 2: f += 0.005
-		case 3: f += 0.0005
-		case 4: f += 0.00005
-		case 5: f += 0.000005
-		case 6: f += 0.0000005
-		case 7: f += 0.00000005
-		case 8: f += 0.000000005
-		case 9: f += 0.0000000005
-	}
-
-	if prec == 0 {
-	  return format(int(f), 0)
-	}
-	u := int(f)
-	save := u
+	var u int
 	var neg bool
-	if u < 0 {
+	if f < 0 {
+		switch prec {
+			case 0: format(int(f - 0.5), 0)
+			case 1: f -= 0.05
+			case 2: f -= 0.005
+			case 3: f -= 0.0005
+			case 4: f -= 0.00005
+			case 5: f -= 0.000005
+			case 6: f -= 0.0000005
+			case 7: f -= 0.00000005
+			case 8: f -= 0.000000005
+			case 9: f -= 0.0000000005
+		}
 		neg = true
-		u = -u
+		u = 0 - int(f)
+	} else {
+		switch prec {
+			case 0: format(int(f + 0.5), 0)
+			case 1: f += 0.05
+			case 2: f += 0.005
+			case 3: f += 0.0005
+			case 4: f += 0.00005
+			case 5: f += 0.000005
+			case 6: f += 0.0000005
+			case 7: f += 0.00000005
+			case 8: f += 0.000000005
+			case 9: f += 0.0000000005
+		}
+		u = int(f)
 	}
+	
+	save := u
 
 	var q int
 	var j uintptr
@@ -121,6 +132,7 @@ func FloatBytes(f float64, prec int) []byte {
 	if neg {
 		i--
 		a[i] = '-'
+		f = -f
 	}
 	
 	a[19 - prec] = '.'
@@ -134,9 +146,6 @@ func FloatBytes(f float64, prec int) []byte {
 		case 7: u = int(f * 10000000) - (save * 10000000)
 		case 8: u = int(f * 100000000) - (save * 100000000)
 		case 9: u = int(f * 1000000000) - (save * 1000000000)
-	}
-	if neg {
-		u = -u
 	}
 	save = i
 	
@@ -167,29 +176,40 @@ func FloatBytes(f float64, prec int) []byte {
 
 func WriteFloat(w io.Writer, f float64, prec int) (int, error) {
 
-	switch prec {
-		case 0: f += 0.5
-		case 1: f += 0.05
-		case 2: f += 0.005
-		case 3: f += 0.0005
-		case 4: f += 0.00005
-		case 5: f += 0.000005
-		case 6: f += 0.0000005
-		case 7: f += 0.00000005
-		case 8: f += 0.000000005
-		case 9: f += 0.0000000005
+	var u int
+	var neg bool
+	if f < 0 {
+		switch prec {
+			case 0: Write(w, int(f - 0.5), 0)
+			case 1: f -= 0.05
+			case 2: f -= 0.005
+			case 3: f -= 0.0005
+			case 4: f -= 0.00005
+			case 5: f -= 0.000005
+			case 6: f -= 0.0000005
+			case 7: f -= 0.00000005
+			case 8: f -= 0.000000005
+			case 9: f -= 0.0000000005
+		}
+		neg = true
+		u = 0 - int(f)
+	} else {
+		switch prec {
+			case 0: Write(w, int(f + 0.5), 0)
+			case 1: f += 0.05
+			case 2: f += 0.005
+			case 3: f += 0.0005
+			case 4: f += 0.00005
+			case 5: f += 0.000005
+			case 6: f += 0.0000005
+			case 7: f += 0.00000005
+			case 8: f += 0.000000005
+			case 9: f += 0.0000000005
+		}
+		u = int(f)
 	}
 	
-	if prec == 0 {
-	  return Write(w, int(f), 0)
-	}
-	u := int(f)
 	save := u
-	var neg bool
-	if u < 0 {
-		neg = true
-		u = -u
-	}
 
 	var q int
 	var j uintptr
@@ -216,6 +236,7 @@ func WriteFloat(w io.Writer, f float64, prec int) (int, error) {
 	if neg {
 		i--
 		a[i] = '-'
+		f = -f
 	}
 	
 	a[19 - prec] = '.'
@@ -229,9 +250,6 @@ func WriteFloat(w io.Writer, f float64, prec int) (int, error) {
 		case 7: u = int(f * 10000000) - (save * 10000000)
 		case 8: u = int(f * 100000000) - (save * 100000000)
 		case 9: u = int(f * 1000000000) - (save * 1000000000)
-	}
-	if neg {
-		u = -u
 	}
 	save = i
 	
